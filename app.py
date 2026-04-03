@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import os
 import sqlite3
 
-VERSION = "3.1.0"
+VERSION = "2.0.0"
 DATABASE = os.environ.get("DATABASE", "aceest_gym.db")
 
 application = Flask(__name__)
