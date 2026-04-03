@@ -1,100 +1,116 @@
-# ACEest Fitness & Gym — DevOps Assignment (BITS WILP)
+# ACEest Fitness & Gym — BITS WILP DevOps Project
 
-## Overview
-REST API for gym client management built with Flask and SQLite, delivered through a
-fully automated DevOps pipeline: Git → GitHub → GitHub Actions CI → Jenkins BUILD → Docker.
+## About This Project
+This project implements a backend web service for managing gym members and their fitness journeys at ACEest Fitness & Gym. The application exposes a set of HTTP endpoints built using the Flask framework with SQLite as the data store. The entire delivery process is automated through a modern DevOps toolchain that takes code from a developer's machine all the way to a running container on a build server.
 
-## Tech Stack
-- **Application**: Python 3.11, Flask, SQLite
-- **Testing**: Pytest
-- **Containerisation**: Docker
-- **CI Pipeline**: GitHub Actions
-- **Build Server**: Jenkins
-- **Version Control**: Git / GitHub
-
-## Local Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/<your-username>/aceest-gym-v2.git
-cd aceest-gym-v2
-
-# Set up virtual environment
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# Start the application
-python app.py
-# Runs at http://localhost:5000
+The pipeline follows this flow:
+```
+Local Development → Git Commits → GitHub → GitHub Actions → Jenkins → Docker Container
 ```
 
-## API Reference
+## Tools and Technologies
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Service health check |
-| GET | `/programs` | List available fitness plans |
-| POST | `/clients` | Register a new client |
-| GET | `/clients/<name>` | Retrieve client profile |
-| POST | `/clients/<name>/progress` | Record weekly adherence |
-| GET | `/clients/<name>/bmi` | Compute BMI and category |
+| Category | Technology |
+|---|---|
+| Language | Python 3.11 |
+| Web Framework | Flask |
+| Database | SQLite |
+| Test Framework | Pytest |
+| Containerisation | Docker |
+| Automated CI | GitHub Actions |
+| Build Automation | Jenkins |
+| Source Control | Git and GitHub |
 
-## Running Tests
+## Getting Started Locally
 
+```bash
+# 1. Get the code
+git clone https://github.com/<your-username>/aceest-fitness-gym.git
+cd aceest-fitness-gym
+
+# 2. Create an isolated Python environment
+python3 -m venv venv
+source venv/bin/activate        # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# 3. Launch the server
+python app.py
+# Server starts at http://localhost:5000
+```
+
+## Available Endpoints
+
+| HTTP Method | Route | What It Does |
+|-------------|-------|--------------|
+| GET | `/` | Returns service name, version and health status |
+| GET | `/programs` | Retrieves all available fitness plans |
+| POST | `/clients` | Registers a new gym member |
+| GET | `/clients/<name>` | Looks up a member's full profile |
+| POST | `/clients/<name>/progress` | Logs a member's weekly workout adherence |
+| GET | `/clients/<name>/bmi` | Calculates and returns BMI with health category |
+
+## How to Run the Tests
+
+Activate the virtual environment first, then:
 ```bash
 pytest tests/ -v
 ```
+All test cases are headless and safe to run in any CI environment without a display.
 
-## Docker Usage
+## Working with Docker
 
 ```bash
-# Build
-docker build -t aceest-gym-app .
+# Build the container image
+docker build -t aceest-fitness-gym .
 
-# Run
-docker run -p 5000:5000 aceest-gym-app
+# Launch the container and expose port 5000
+docker run -p 5000:5000 aceest-fitness-gym
 
-# Test inside container
-docker run --rm aceest-gym-app pytest tests/ -v
+# Execute the test suite directly inside the container
+docker run --rm aceest-fitness-gym pytest tests/ -v
 ```
 
-## GitHub Actions CI
+## Continuous Integration — GitHub Actions
 
-Triggers on every push and pull request to `main`. Stages:
-1. **Syntax Check** — validates `app.py` with `py_compile`
-2. **Unit Tests** — runs full pytest suite
-3. **Docker Build** — builds container image
-4. **Container Tests** — reruns pytest inside the built image
+Every time code is pushed or a pull request is raised against the `main` branch, the following automated stages execute in sequence:
 
-Pipeline file: `.github/workflows/main.yml`
+1. **Pull source code** — checks out the latest commit from the repository
+2. **Load application dependencies** — installs all packages from `requirements.txt`
+3. **Verify application syntax** — uses `py_compile` to catch any syntax errors before building
+4. **Run test suite** — executes all pytest cases and fails the pipeline if any test breaks
+5. **Assemble Docker image** — packages the application into a portable container
+6. **Validate tests inside container** — reruns the full test suite inside the built image to confirm container integrity
 
-## Jenkins BUILD Pipeline
+Workflow definition: `.github/workflows/main.yml`
 
-Pulls latest code from GitHub and runs:
-1. **Source Checkout** — fetches from GitHub
-2. **Snapshot Previous Build** — saves current image for rollback
-3. **Syntax Check** — validates Python syntax
-4. **Docker Build** — builds image tagged with `BUILD_NUMBER`
-5. **Containerised Tests** — pytest inside Docker
-6. **Promote to Latest** — tags image as `aceest-gym-app:latest`
+## Build Automation — Jenkins Pipeline
 
-On failure, automatically restores the previous image as `latest`.
+Jenkins handles the primary build phase by pulling the latest code from GitHub and executing the following stages:
 
-Pipeline file: `Jenkinsfile`
+1. **Source Checkout** — retrieves the latest commit from the `main` branch
+2. **Snapshot Previous Build** — preserves the currently running image as a fallback before attempting a new build
+3. **Syntax Check** — confirms the Python source has no syntax issues
+4. **Docker Build** — constructs a new image tagged with the Jenkins build number
+5. **Containerised Tests** — runs the full pytest suite inside the freshly built container
+6. **Promote to Latest** — if all tests pass, the new image is tagged as `aceest-fitness-gym:latest`
 
-### Jenkins Setup
-1. Open Jenkins at `http://<bits-vm-ip>:8080`
-2. New Item → Pipeline → name it `aceest-gym-app`
-3. Pipeline script from SCM → Git
-4. Repository URL → your GitHub repo URL
-5. Branch → `*/main` | Script Path → `Jenkinsfile`
-6. Save → Build Now
+If any stage fails, Jenkins automatically restores the previously snapshotted image as `latest`, ensuring the last known working version stays live.
 
-## Version History
+Pipeline definition: `Jenkinsfile`
 
-| Tag | Description |
-|-----|-------------|
-| v1.0 | Initial Flask app with SQLite |
-| v1.1 | Progress tracking endpoints added |
-| v1.2 | BMI, metrics, workout logging — stable release |
+### Configuring Jenkins
+
+1. Navigate to `http://<bits-vm-ip>:8080` and log in
+2. Click "New Item" → enter `aceest-fitness-gym` → select "Pipeline" → click OK
+3. Under "Pipeline", set Definition to "Pipeline script from SCM"
+4. Set SCM to "Git" and paste your GitHub repository URL
+5. Set Branch Specifier to `*/main` and Script Path to `Jenkinsfile`
+6. Click Save, then click "Build Now"
+
+## Release History
+
+| Version | Summary |
+|---------|---------|
+| v1.0 | Foundation — Flask app with SQLite database setup |
+| v1.1 | Enhancement — weekly progress tracking added |
+| v1.2 | Stable release — BMI calculator, body metrics and workout history |
