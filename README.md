@@ -25,7 +25,7 @@ Local Development → Git Commits → GitHub → GitHub Actions → Jenkins → 
 
 ```bash
 # 1. Get the code
-git clone https://github.com/<your-username>/aceest-fitness-gym.git
+git clone https://github.com/2024tm93516-shalin/aceest-fitness-gym.git
 cd aceest-fitness-gym
 
 # 2. Create an isolated Python environment
