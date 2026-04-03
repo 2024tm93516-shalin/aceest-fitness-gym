@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 import os
 import sqlite3
 
+error induced here
+
 VERSION = "3.1.0"
 DATABASE = os.environ.get("DATABASE", "aceest_gym.db")
 
