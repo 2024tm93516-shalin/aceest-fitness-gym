@@ -1,0 +1,41 @@
+name: ACEest Fitness Gym — Automated Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull source code
+        uses: actions/checkout@v4
+
+      - name: Configure Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Load application dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify application syntax
+        run: |
+          python -m py_compile app.py
+          echo "app.py passed syntax check"
+
+      - name: Run test suite
+        run: pytest tests/ -v --tb=short
+
+      - name: Assemble Docker image
+        run: docker build -t aceest-fitness-gym:${{ github.sha }} .
+
+      - name: Validate tests inside container
+        run: |
+          docker run --rm aceest-fitness-gym:${{ github.sha }} \
+            pytest tests/ -v --tb=short
